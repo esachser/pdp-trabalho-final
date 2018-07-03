@@ -5,7 +5,7 @@ import org.apache.flink.util.Collector
 
 class SearchSpout(freq: Long) extends ProcessFunction[String, (String, Long)]{
   var flag = 0
-  var i = 0
+  var i = 1
   override def processElement(s: String, context: ProcessFunction[String, (String, Long)]#Context, collector: Collector[(String, Long)]): Unit = {
     while(flag < 30){
       flag = flag + 1

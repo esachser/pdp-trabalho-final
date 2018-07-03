@@ -1,6 +1,6 @@
 package com.esachser
 
-import java.io.{BufferedReader, File, FileReader}
+import java.io.{BufferedReader, File, FileReader, PrintWriter}
 
 import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.util.Collector
@@ -32,6 +32,8 @@ class IntactSearchBolt(index_dir:String, indexid_dir:String, plan:String, search
     }
   }
 
+  lazy val out = new PrintWriter(new File("/home/eduardo/output.txt"))
+
   override def processElement(input: (String, Long), context: ProcessFunction[(String, Long), (String, Long, String, Long, Int)]#Context, collector: Collector[(String, Long, String, Long, Int)]): Unit = {
     indexSearcher1.foreach { idxSearcher =>
       val word = input._1
@@ -48,8 +50,8 @@ class IntactSearchBolt(index_dir:String, indexid_dir:String, plan:String, search
           val subDocs = scoreDocs.take(length)
           numhits + "+" + subDocs.mkString("[", ", ", "]")
         } catch {
-          case e:
-            Exception => e.printStackTrace()
+          case e: Exception =>
+            e.printStackTrace()
             ""
         }
       }
@@ -58,7 +60,8 @@ class IntactSearchBolt(index_dir:String, indexid_dir:String, plan:String, search
 
       collector.collect(word, bolt_time, urls_score, start_time, search_num)
       println(word+","+bolt_time+","+urls_score+","+start_time+","+search_num)
+      out.println(word+","+bolt_time+","+urls_score+","+start_time+","+search_num)
+      out.flush()
     }
   }
-
 }

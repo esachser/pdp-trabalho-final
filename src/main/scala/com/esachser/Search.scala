@@ -33,7 +33,7 @@ object Search{
 
     val num_workers = configProps.getProperty("num.workers").toInt
 
-    lazy val out = new PrintWriter(new File("/home/eduardo/output.txt"))
+
 
     // Inicia o Flink e sua execução em si
     val env = StreamExecutionEnvironment.createLocalEnvironment(num_workers)
@@ -43,18 +43,18 @@ object Search{
     val searchspout = text
         .process(new SearchSpout(freq))
         .setParallelism(spoutThreads)
+    val intactSearchBolt = searchspout
         .process(new IntactSearchBolt(index_dir, indexid_dir, plan, search_time))
         .setParallelism(intactSearchBoltThreads)
+    val intactMergeBolt = intactSearchBolt
         .process(new IntactMergeBolt(pro_num))
         .setParallelism(intactMergeBoltThreads)
-
-    val searchBolt = searchspout
+    val searchBolt = intactMergeBolt
         .process(new SearchMergeBolt)
         .setParallelism(finalMergeBoltThreads)
 
-    searchBolt.addSink(v => out.write(v._1 + ", "+ v._2))
+    // intactSearchBolt.addSink(v => out.println(v._1+","+v._2+","+v._3+","+v._4+","+v._5))
 
     env.execute("BigDataBench-Flink-Search")
-    out.close()
   }
 }
