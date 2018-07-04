@@ -12,7 +12,7 @@ Ambos frameworks, *JStorm* e *Flink*, são para BigData Streaming, o que facilit
 compreensão e permitiu que os códigos tivessem alguma semelhança.
 
 Basicamente, o que o programa deveria fazer era uma busca de palavras em uma base 
-indexada, utilizando a API do *Apache\reg Lucene*, e registrando o tempo dessa pesquisa.
+indexada, utilizando a API do *Apache Lucene\trade*, e registrando o tempo dessa pesquisa.
 Além disso, também processa as buscas, gerando resultados a cada 2 pesquisas da mesma palavra
 e a cada 10, em dois processamentos diferentes.
 
@@ -62,7 +62,6 @@ Os resultados estarão na pasta /logs/ do diretório do Flink. Também será cri
 de nome /output.txt/ na pasta raiz do projeto, com a saída somente da etapa 2.
 É possível visualizar informações do Flink e da execução do Job a partir de [[http://localhost:8081]].
 Também pode-se modificar parâmetros através do arquivo /Search.properties/
-
 
 ** Finalizando o Flink
 Vá na pasta onde o flink está instalado via linha de comando, e digite o seguinte comando:
