@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2018-07-03 Ter 20:12 -->
+<!-- 2018-07-03 ter 21:48 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BigDataBench-Search com Flink</title>
@@ -161,19 +161,6 @@
   .footdef  { margin-bottom: 1em; }
   .figure { padding: 1em; }
   .figure p { text-align: center; }
-  .equation-container {
-    display: table;
-    text-align: center;
-    width: 100%;
-  }
-  .equation {
-    vertical-align: middle;
-  }
-  .equation-label {
-    display: table-cell;
-    text-align: right;
-    vertical-align: middle;
-  }
   .inlinetask {
     padding: 10px;
     border: 2px solid gray;
@@ -247,25 +234,145 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org1bd4e60">1. Descrição do projeto</a></li>
+<li><a href="#org9cd60fa">1. Descrição do projeto</a></li>
+<li><a href="#org4dc3c5b">2. Funcionalidade</a></li>
+<li><a href="#org895f165">3. Rodando o programa</a>
+<ul>
+<li><a href="#orgbcb170f">3.1. Rodando o Flink</a></li>
+<li><a href="#org9fc34ed">3.2. Rodando o programa</a></li>
+<li><a href="#org79921d4">3.3. Finalizando o Flink</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org1bd4e60" class="outline-2">
-<h2 id="org1bd4e60"><span class="section-number-2">1</span> Descrição do projeto</h2>
+<div id="outline-container-org9cd60fa" class="outline-2">
+<h2 id="org9cd60fa"><span class="section-number-2">1</span> Descrição do projeto</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 O Bigdatabench é um repositório de benchmarks para BigData usando diversos <i>Frameworks</i>.
-Um dos benchmarks disponíveis é o benchmark de WorkLoad <b>Search</b>, que tem implementação utilizando o framework <b>JStorm</b>. Como trabalho final da disciplina de Programação Distribuída e Paralela/2018-1, escolhi traduzir o benchmark para o framework <b>Flink</b>.
-Ambos frameworks, <b>JStorm</b> e <b>Flink</b>, são para BigData Streaming, o que facilitou a compreensão e permitiu que os códigos tivessem alguma semelhança.
-Basicamente, o que o programa deveria fazer era uma busca de palavras em uma base indexada, utilizando a API do <b>Apache&reg; Lucene</b></p>
+</p>
+
+<p>
+Um dos benchmarks disponíveis é o benchmark de WorkLoad <b>Search</b>, que tem implementação 
+utilizando o framework <b>JStorm</b>. Como trabalho final da disciplina de Programação Distribuída 
+e Paralela/2018-1, escolhi traduzir o benchmark para o framework <b>Flink</b>.
+</p>
+
+<p>
+Ambos frameworks, <b>JStorm</b> e <b>Flink</b>, são para BigData Streaming, o que facilitou a 
+compreensão e permitiu que os códigos tivessem alguma semelhança.
+</p>
+
+<p>
+Basicamente, o que o programa deveria fazer era uma busca de palavras em uma base 
+indexada, utilizando a API do <b>Apache Lucene&trade;</b>, e registrando o tempo dessa pesquisa.
+Além disso, também processa as buscas, gerando resultados a cada 2 pesquisas da mesma palavra
+e a cada 10, em dois processamentos diferentes.
+</p>
+
+<p>
+Para isso, foram criados 4 processamentos, baseados na versão <b>JStorm</b> do programa:
+</p>
+<ol class="org-ol">
+<li><b>SearchSpout</b>: Responsável por criar a carga de trabalho. Envia uma nova palavra com
+<i>timestamp</i> com uma frequência definida;</li>
+<li><b>IntactSearchBolt</b>: Recebe a palavra e faz a pesquisa. Em seguida, calcula o tempo para tal
+e envia adiante, salvando em arquivo a tupla palavra, tempo, urls, tempo de início e 0;</li>
+<li><b>IntactMergeBolt</b>: Recebe o resultado anterior e salva as pesquisas, unindo pesquisas por palavras
+iguais, e enviando, a cada duas pesquisas, a palavra, o resultado, e o tempo inicial do 
+processamento adiante;</li>
+<li><b>SearchMergeBolt</b>: Recebe o resultado anterior e, a cada cinco repetições da mesma palavra, 
+coleta o resultado.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org4dc3c5b" class="outline-2">
+<h2 id="org4dc3c5b"><span class="section-number-2">2</span> Funcionalidade</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Os 4 processamentos criados foram testados utilizando as entradas segundo o documento 
+<a href="http://prof.ict.ac.cn/bdb_uploads/bdb_streaming/BigDataBench-User-Manual-JStorm.pdf">http://prof.ict.ac.cn/bdb_uploads/bdb_streaming/BigDataBench-User-Manual-JStorm.pdf</a> recomenda.
+Foi também executado o programa exemplo, e obtidas saídas com o mesmo formato, tanto na 
+implementação, quanto no exemplo em <b>JStorm</b>.
+</p>
+
+<p>
+Não foi possível verificar as saídas dos itens 3 e 4, pois as palavras de pesquisa fornecidas
+eram todas diferentes uma da outra. Porém, para simplesmente testar se a funcionalidade 
+estava acontecendo, foram duplicados os envios de cada palavra, e foi possível verificar
+o funcionamento do item 3 (IntactMergeBolt).
+</p>
+</div>
+</div>
+
+<div id="outline-container-org895f165" class="outline-2">
+<h2 id="org895f165"><span class="section-number-2">3</span> Rodando o programa</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Para rodar o programa é necessário baixar o Flink. Para a execução do projeto foi utilizado o 
+Flink 1.5.
+</p>
+
+<p>
+É necessário baixar os arquivos de entrada e extraí-los para uma pasta. Essa pasta deve ser
+setada no arquivo <i>Search.properties</i>. O link para os arquivos de entrada está no manual citado
+anteriormente.
+</p>
+</div>
+
+<div id="outline-container-orgbcb170f" class="outline-3">
+<h3 id="orgbcb170f"><span class="section-number-3">3.1</span> Rodando o Flink</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+Vá na pasta onde o flink está instalado via linha de comando, e digite o seguinte comando:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./bin/start-cluster.sh
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9fc34ed" class="outline-3">
+<h3 id="org9fc34ed"><span class="section-number-3">3.2</span> Rodando o programa</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Vá até a pasta do programa, e altere o arquivo <i>submit.sh</i>, de forma a apresentar o correto
+lugar do <b>Flink<sub>home</sub></b>. Por fim, execute no terminal:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./submit.sh
+</pre>
+</div>
+<p>
+Os resultados estarão na pasta <i>logs</i> do diretório do Flink. Também será criado um arquivo 
+de nome <i>output.txt</i> na pasta raiz do projeto, com a saída somente da etapa 2.
+É possível visualizar informações do Flink e da execução do Job a partir de <a href="http://localhost:8081">http://localhost:8081</a>.
+Também pode-se modificar parâmetros através do arquivo <i>Search.properties</i>
+</p>
+</div>
+</div>
+
+<div id="outline-container-org79921d4" class="outline-3">
+<h3 id="org79921d4"><span class="section-number-3">3.3</span> Finalizando o Flink</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+Vá na pasta onde o flink está instalado via linha de comando, e digite o seguinte comando:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./bin/stop-cluster.sh
+</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Eduardo Sachser</p>
-<p class="date">Created: 2018-07-03 Ter 20:12</p>
+<p class="date">Created: 2018-07-03 ter 21:48</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
