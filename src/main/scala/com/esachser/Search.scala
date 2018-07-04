@@ -36,22 +36,28 @@ object Search{
 
 
     // Inicia o Flink e sua execução em si
-    val env = StreamExecutionEnvironment.createLocalEnvironment(num_workers)
+    //val env = StreamExecutionEnvironment.createLocalEnvironment(num_workers)
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    env.setParallelism(num_workers)
+    // env.setMaxParallelism(num_workers)
 
-    val text = env.readTextFile(wordsdir)
+    val text = env.readTextFile(wordsdir).setParallelism(1)
 
     val searchspout = text
-        .process(new SearchSpout(freq))
-        .setParallelism(spoutThreads)
+      .process(new SearchSpout(freq))
+      .setParallelism(spoutThreads)
+      .broadcast
     val intactSearchBolt = searchspout
-        .process(new IntactSearchBolt(index_dir, indexid_dir, plan, search_time))
-        .setParallelism(intactSearchBoltThreads)
+      .process(new IntactSearchBolt(index_dir, indexid_dir, plan, search_time))
+      .setParallelism(intactSearchBoltThreads)
+      .shuffle
     val intactMergeBolt = intactSearchBolt
-        .process(new IntactMergeBolt(pro_num))
-        .setParallelism(intactMergeBoltThreads)
+      .process(new IntactMergeBolt(pro_num))
+      .setParallelism(intactMergeBoltThreads)
+      .shuffle
     val searchBolt = intactMergeBolt
-        .process(new SearchMergeBolt)
-        .setParallelism(finalMergeBoltThreads)
+      .process(new SearchMergeBolt)
+      .setParallelism(finalMergeBoltThreads)
 
     // intactSearchBolt.addSink(v => out.println(v._1+","+v._2+","+v._3+","+v._4+","+v._5))
 

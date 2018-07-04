@@ -1,0 +1,72 @@
+#+title: BigDataBench-Search com Flink
+#+author: Eduardo Sachser
+
+* Descrição do projeto
+O Bigdatabench é um repositório de benchmarks para BigData usando diversos /Frameworks/.
+
+Um dos benchmarks disponíveis é o benchmark de WorkLoad *Search*, que tem implementação 
+utilizando o framework *JStorm*. Como trabalho final da disciplina de Programação Distribuída 
+e Paralela/2018-1, escolhi traduzir o benchmark para o framework *Flink*.
+
+Ambos frameworks, *JStorm* e *Flink*, são para BigData Streaming, o que facilitou a 
+compreensão e permitiu que os códigos tivessem alguma semelhança.
+
+Basicamente, o que o programa deveria fazer era uma busca de palavras em uma base 
+indexada, utilizando a API do *Apache\reg Lucene*, e registrando o tempo dessa pesquisa.
+Além disso, também processa as buscas, gerando resultados a cada 2 pesquisas da mesma palavra
+e a cada 10, em dois processamentos diferentes.
+
+Para isso, foram criados 4 processamentos, baseados na versão *JStorm* do programa:
+1. *SearchSpout*: Responsável por criar a carga de trabalho. Envia uma nova palavra com
+   /timestamp/ com uma frequência definida;
+2. *IntactSearchBolt*: Recebe a palavra e faz a pesquisa. Em seguida, calcula o tempo para tal
+   e envia adiante, salvando em arquivo a tupla palavra, tempo, urls, tempo de início e 0;
+3. *IntactMergeBolt*: Recebe o resultado anterior e salva as pesquisas, unindo pesquisas por palavras
+   iguais, e enviando, a cada duas pesquisas, a palavra, o resultado, e o tempo inicial do 
+   processamento adiante;
+4. *SearchMergeBolt*: Recebe o resultado anterior e, a cada cinco repetições da mesma palavra, 
+   coleta o resultado.
+
+* Funcionalidade
+Os 4 processamentos criados foram testados utilizando as entradas segundo o documento 
+[[http://prof.ict.ac.cn/bdb_uploads/bdb_streaming/BigDataBench-User-Manual-JStorm.pdf]] recomenda.
+Foi também executado o programa exemplo, e obtidas saídas com o mesmo formato, tanto na 
+implementação, quanto no exemplo em *JStorm*.
+
+Não foi possível verificar as saídas dos itens 3 e 4, pois as palavras de pesquisa fornecidas
+eram todas diferentes uma da outra. Porém, para simplesmente testar se a funcionalidade 
+estava acontecendo, foram duplicados os envios de cada palavra, e foi possível verificar
+o funcionamento do item 3 (IntactMergeBolt).
+
+* Rodando o programa
+Para rodar o programa é necessário baixar o Flink. Para a execução do projeto foi utilizado o 
+Flink 1.5.
+
+É necessário baixar os arquivos de entrada e extraí-los para uma pasta. Essa pasta deve ser
+setada no arquivo /Search.properties/. O link para os arquivos de entrada está no manual citado
+anteriormente.
+
+** Rodando o Flink
+Vá na pasta onde o flink está instalado via linha de comando, e digite o seguinte comando:
+#+begin_src bash
+./bin/start-cluster.sh
+#+end_src
+
+** Rodando o programa
+Vá até a pasta do programa, e altere o arquivo /submit.sh/, de forma a apresentar o correto
+lugar do *Flink_home*. Por fim, execute no terminal:
+#+begin_src bash
+./submit.sh
+#+end_src
+Os resultados estarão na pasta /logs/ do diretório do Flink. Também será criado um arquivo 
+de nome /output.txt/ na pasta raiz do projeto, com a saída somente da etapa 2.
+É possível visualizar informações do Flink e da execução do Job a partir de [[http://localhost:8081]].
+Também pode-se modificar parâmetros através do arquivo /Search.properties/
+
+
+** Finalizando o Flink
+Vá na pasta onde o flink está instalado via linha de comando, e digite o seguinte comando:
+#+begin_src bash
+./bin/stop-cluster.sh
+#+end_src
+

@@ -32,7 +32,7 @@ class IntactSearchBolt(index_dir:String, indexid_dir:String, plan:String, search
     }
   }
 
-  lazy val out = new PrintWriter(new File("/home/eduardo/output.txt"))
+  lazy val out = new PrintWriter(new File("./output.txt"))
 
   override def processElement(input: (String, Long), context: ProcessFunction[(String, Long), (String, Long, String, Long, Int)]#Context, collector: Collector[(String, Long, String, Long, Int)]): Unit = {
     indexSearcher1.foreach { idxSearcher =>
